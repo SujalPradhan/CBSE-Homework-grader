@@ -4,6 +4,7 @@ import { TASKS, TASK_CODE, CODE_TASK, LETTER, FROM_LETTER, textQuestions, normal
 
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-allow-headers': 'content-type' };
 const json = (b, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json', ...CORS } });
+const PROMPT_VERSION = 'v3';
 const B32 = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const enc = new TextEncoder();
 
@@ -48,10 +49,10 @@ async function bump(env, key, cap) {
 }
 
 async function callModel(env, messages) {
-  const r = await fetch(`${env.AIPIPE_BASE || 'https://aipipe.org/openrouter/v1'}/chat/completions`, {
+  const r = await fetch(`${env.AIPIPE_BASE || 'https://aipipe.org/openai/v1'}/chat/completions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${env.AIPIPE_TOKEN}` },
-    body: JSON.stringify({ model: env.MODEL || 'openai/gpt-4.1-nano', temperature: 0, max_tokens: 900, response_format: { type: 'json_object' }, messages }),
+    body: JSON.stringify({ model: env.MODEL || 'gpt-4.1-mini', temperature: 0, max_tokens: 900, response_format: { type: 'json_object' }, messages }),
   });
   if (!r.ok) throw new Error(`model http ${r.status}`);
   const j = await r.json();
@@ -69,13 +70,14 @@ async function verify(env, body, ip) {
     return json({ ok: false, status: 'incomplete', missing: miss.map(id => task.questions.find(q => q.id === id).label.slice(0, 80)) });
 
   const numbers = numbersCheck(task, ans, bad);
-  const key = 'g:' + b32(await sha(`${task.id}|${JSON.stringify(ans)}`), 24);
+  const key = 'g:' + b32(await sha(`${PROMPT_VERSION}|${env.MODEL || 'gpt-4.1-mini'}|${task.id}|${JSON.stringify(ans)}`), 24);
   const cached = env.LIMITS && await env.LIMITS.get(key);
+  if (!cached && !env.AIPIPE_TOKEN) return json({ error: 'The answer checker is being set up. Your answers are saved on this device; please try again later.' }, 503);
   let levels, nonce;
   if (cached) ({ levels, nonce } = JSON.parse(cached));
   else {
     const day = new Date().toISOString().slice(0, 10);
-    if (!(await bump(env, `ip:${ip}:${day}`, Number(env.IP_DAILY_CAP) || 40)) || !(await bump(env, `all:${day}`, Number(env.GLOBAL_DAILY_CAP) || 2000)))
+    if (!(await bump(env, `ip:${ip}:${day}`, Number(env.IP_DAILY_CAP) || 300)) || !(await bump(env, `all:${day}`, Number(env.GLOBAL_DAILY_CAP) || 2000)))
       return json({ error: 'The checker is busy today. Your answers are saved on your device. Try again tomorrow.' }, 429);
     levels = {};
     const toModel = [];
@@ -84,13 +86,13 @@ async function verify(env, body, ip) {
       else toModel.push(q);
     }
     if (toModel.length) {
-      if (!env.AIPIPE_TOKEN) return json({ error: 'The answer checker is being set up. Your answers are saved on this device; please try again later.' }, 503);
       let parsed;
       try { parsed = parseModel(await callModel(env, buildMessages(task, ans, toModel)), toModel, ans); }
       catch (e) { return json({ error: 'Could not check your answers right now. Please try again in a minute.' }, 502); }
       Object.assign(levels, parsed);
     }
-    nonce = b32((await sha(JSON.stringify(ans))).slice(8), 4);
+    // Same words (ignoring case, spacing and punctuation) give the same code, so exact copies are easy to spot.
+    nonce = b32((await sha(JSON.stringify(Object.values(ans)).toLowerCase().replace(/[^\p{L}\p{N}.]+/gu, ' ').trim())).slice(8), 4);
     if (env.LIMITS) await env.LIMITS.put(key, JSON.stringify({ levels, nonce }), { expirationTtl: 604800 });
   }
   const level = combine(levels, numbers);
@@ -107,7 +109,7 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
     const url = new URL(req.url), ip = req.headers.get('cf-connecting-ip') || 'local';
     try {
-      if (url.pathname === '/api/health') return json({ ok: true, model: env.MODEL || 'openai/gpt-4.1-nano', configured: !!(env.AIPIPE_TOKEN && env.SIGNING_KEY) });
+      if (url.pathname === '/api/health') return json({ ok: true, model: env.MODEL || 'gpt-4.1-mini', configured: !!(env.AIPIPE_TOKEN && env.SIGNING_KEY) });
       if (!env.SIGNING_KEY) return json({ error: 'Checker is not configured yet.' }, 503);
       if (url.pathname === '/api/verify' && req.method === 'POST') {
         const text = await req.text();

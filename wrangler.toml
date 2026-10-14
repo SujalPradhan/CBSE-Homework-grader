@@ -3,8 +3,8 @@ main = "src/index.js"
 compatibility_date = "2025-09-01"
 
 [vars]
-MODEL = "openai/gpt-4.1-nano"
-IP_DAILY_CAP = "40"
+MODEL = "gpt-4.1-mini"
+IP_DAILY_CAP = "300"
 GLOBAL_DAILY_CAP = "2000"
 
 [[kv_namespaces]]

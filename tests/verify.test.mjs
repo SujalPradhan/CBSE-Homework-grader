@@ -165,3 +165,30 @@ test('without a model key the checker says it is being set up and issues nothing
   const [s, r] = await call(env, '/api/verify', { task: 'salt', answers: HONEST.salt });
   assert.equal(s, 503); assert.equal(r.code, undefined); assert.equal(modelCalls.length, 0);
 });
+
+test('cache is keyed by model, so a model change regrades', async () => {
+  fakeModel('got_it');
+  const env = mkEnv({ MODEL: 'model-a' });
+  await call(env, '/api/verify', { task: 'pendulum', answers: HONEST.pendulum });
+  const n = modelCalls.length;
+  env.MODEL = 'model-b';
+  await call(env, '/api/verify', { task: 'pendulum', answers: HONEST.pendulum }, '3.3.3.3');
+  assert.ok(modelCalls.length > n);
+});
+
+test('an unconfigured checker does not use up the daily allowance', async () => {
+  fakeModel('got_it');
+  const env = mkEnv({ IP_DAILY_CAP: '1' }); const token = env.AIPIPE_TOKEN; delete env.AIPIPE_TOKEN;
+  assert.equal((await call(env, '/api/verify', { task: 'salt', answers: HONEST.salt }))[0], 503);
+  env.AIPIPE_TOKEN = token;
+  assert.equal((await call(env, '/api/verify', { task: 'salt', answers: HONEST.salt }))[0], 200);
+});
+
+test('case, spacing and punctuation changes give the same code', async () => {
+  fakeModel('got_it');
+  const env = mkEnv();
+  const [, a] = await call(env, '/api/verify', { task: 'pendulum', answers: HONEST.pendulum });
+  const b = { ...HONEST.pendulum, hard: HONEST.pendulum.hard.toUpperCase() + '!!' };
+  const [, c] = await call(env, '/api/verify', { task: 'pendulum', answers: b }, '4.4.4.4');
+  assert.equal(a.code.split('-')[4], c.code.split('-')[4]);
+});
