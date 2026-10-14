@@ -2,7 +2,13 @@ name = "cbse-homework"
 main = "src/index.js"
 compatibility_date = "2025-09-01"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "cbse-homework"
-database_id = "16baa447-4256-4aba-b915-d1b8007a2e81"
+[vars]
+MODEL = "openai/gpt-4.1-nano"
+IP_DAILY_CAP = "40"
+GLOBAL_DAILY_CAP = "2000"
+
+[[kv_namespaces]]
+binding = "LIMITS"
+id = "792b26644ebb4f318932267747096ca7"
+
+# Secrets (set with `wrangler secret put`, never in this file): AIPIPE_TOKEN, SIGNING_KEY
