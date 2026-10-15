@@ -1,35 +1,39 @@
-// Complete, honest answer sheets (simulated test data, not real students). Numbers follow the student's own set number.
-import { CASE } from '../src/assignments.mjs';
-const phys = L => 10 * 2 * Math.PI * Math.sqrt(L / 981);
+// Complete, honest answer sheets (simulated test data, not real students). Numbers come from the student's own set number.
+import { CASE, walkLength } from '../src/assignments.mjs';
+import { pendulumTime, spoons } from '../src/lab.js';
 const r1 = x => Math.round(x * 10) / 10;
 export const SET = 47;
+export const TASK_IDS = ['river', 'fence', 'pendulum', 'dissolve', 'mixer'];
 
 export function honest(id, set = SET) {
   const c = CASE(set);
   switch (id) {
-    case 'handspan': {
-      const hs1 = 16, hs2 = 21, L = 150;
-      return { pred: 'The adult', hs1, n1: 9.5, hs2, n2: 7, L, bench: r1(c.bench / hs2), fair: 'A metre scale',
-        why: 'The adult has a bigger hand so needs fewer handspans. A metre scale is the same for everyone.' };
+    case 'river': {
+      const l10 = walkLength(set, 10), l5 = walkLength(set, 5), l2 = walkLength(set, 2);
+      return { pred: 'Longer', l10, l5, l2, diff: l2 - l10, l1: r1(walkLength(set, 1)), best: '2 km step',
+        why: 'A smaller step follows more of the bends, but a big step cuts straight across the curves and misses some length.' };
+    }
+    case 'fence': {
+      const h = c.P / 2, side = Math.floor(c.P / 4);
+      return { l1: h - 1, b1: 1, l2: h - 3, b2: 3, l3: side, b3: h - side, shape: 'Nearly a square',
+        why: 'Yes, the same fence can make different shapes, a long thin one has less area than a squarer one.' };
     }
     case 'pendulum': {
-      const t1 = phys(c.L), m = r1(t1);
-      return { pred: 'Double', t1a: r1(t1 * 1.02), t1b: r1(t1 * 0.98), t1c: m, t4: r1(t1 * 2.03),
-        p15: r1(m * Math.pow(2.03, 0.2925)), t15: r1(m * Math.pow(2.03, 0.2925) * 1.03),
-        design: Math.round(c.L * Math.pow(c.goal / m, 2)), mass: 'Barely changes',
-        why: 'When the thread was 4 times longer the time became about double, not four times.' };
+      const a25 = r1(pendulumTime(set, 25, true)), a100 = r1(pendulumTime(set, 100, true));
+      return { pred: 'About 2 times longer', a25, a100, ratio: r1(a100 / a25), pL: r1(pendulumTime(set, c.pL)),
+        need: 25 * c.k * c.k, mass: 'Barely changes',
+        why: 'A longer thread takes longer but not as much as the length, 4 times the length gave about 2 times the time.' };
     }
-    case 'salt':
-      return { n: 6, pf: 12, nf: 11, s1: 'Can’t test it', s2: 'Disagrees', s3: 'Disagrees', s4: 'Can’t test it',
-        why: 'The salt is still in the glass as solid at the bottom because the water is full and cannot hold any more.' };
-    case 'paper': {
-      const sheets = c.pages / 2, h = r1(0.09 * sheets), t = Math.round(h / sheets * 1000) / 1000;
-      return { pred: 0.1, h, t, th: Math.round(t * 1000), pile: r1(t * c.pile), best: 'Measure 100 sheets',
-        why: 'One sheet is too thin for the ruler, so I measure many sheets and divide to share the ruler error.' };
+    case 'dissolve': {
+      const d20 = spoons(set, 0.5, 20), dT = spoons(set, 0.5, c.dT);
+      return { pred: 'More salt', d20, dT, more: dT - d20, full: spoons(set, 1, c.dT),
+        glasses: Math.ceil(c.need / spoons(set, 1, 40)), stir: 'The same',
+        why: 'The water can only hold so much salt, when it is full the extra salt cannot dissolve and stays at the bottom.' };
     }
-    case 'sweet':
-      return { pred: 'Less sweet than A', b: 2 * c.a, least: 'C', jar: Math.round(c.jar / c.a * 100) / 100, fix: c.a - 1,
-        why: 'The water doubled so the sugar must double too. One more spoon gives less sugar per cup so it tastes weaker.' };
+    case 'mixer':
+      return { pred: 'Less sweet', s1: c.n1 * c.r, s2: c.n2 * c.r,
+        cmp: { more: 'Sweeter', same: 'The same', less: 'Less sweet' }[c.mode], cups: c.m,
+        why: 'The same sugar for every cup, so I multiplied the spoons per cup by the number of cups.' };
   }
 }
-export const HONEST = Object.fromEntries(['handspan', 'pendulum', 'salt', 'paper', 'sweet'].map(id => [id, honest(id)]));
+export const HONEST = Object.fromEntries(TASK_IDS.map(id => [id, honest(id)]));

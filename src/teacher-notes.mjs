@@ -2,60 +2,60 @@
 // Short teacher notes per task: what to expect, a 3-level rubric, misconceptions, a 2-minute class check.
 // Loaded only by teacher.html (still a public file). The checker's private rules are not here.
 const TEACHER = {
-  handspan: {
-    prep: 'None.',
-    answers: 'Adult handspans (18–23 cm) are bigger than a child’s (14–19 cm), so the adult needs fewer. Count × handspan matches the ruler within about 10%. The bench answer is the bench length ÷ the adult’s handspan. The fair measure is the metre scale.',
+  river: {
+    prep: 'None. Online only.',
+    answers: 'The 10 km step gives the shortest length. Each smaller step gives a longer one, but the gain gets smaller (the 1 km figure is only a little above the 2 km one). The closest measurement is the 2 km step.',
     rubric: [
-      ['Got it', 'Numbers agree, the bench answer uses the adult’s handspan, and the sentence says hands differ so we need a standard unit.'],
-      ['Partly', 'Numbers agree but the reason is only “hands are different”.'],
-      ['Not yet', 'Counts do not match the length, or the bench answer ignores the adult’s handspan.'],
+      ['Got it', 'The three lengths are read correctly, the 1 km prediction is slightly above the 2 km one, and the sentence says small steps follow the bends.'],
+      ['Partly', 'Numbers are right but the sentence is only “it is more accurate”.'],
+      ['Not yet', 'Lengths do not match the map, or the prediction is shorter than the 2 km length.'],
     ],
-    misconceptions: ['A bigger hand gives a bigger count.', 'The ruler is “just another way”.'],
-    classCheck: ['Riya’s handspan is 15 cm and her father’s is 20 cm. A bench is 12 of Riya’s handspans. How many of her father’s?'],
+    misconceptions: ['A longer step is more accurate.', 'The river has one fixed length whatever you use.'],
+    classCheck: ['A road is measured with a 100 m step and then a 10 m step. Which length is bigger, and why?'],
+  },
+  fence: {
+    prep: 'None. Online only.',
+    answers: 'Any rectangle with length + breadth = half the fence works. A different rectangle can have a bigger area. The biggest whole-number field is as close to a square as whole numbers allow (for 30 m, 7 m by 8 m). Squarer shapes hold more area.',
+    rubric: [
+      ['Got it', 'All fields use the fence exactly, the second is bigger than the first, the biggest is the square, and the sentence says the same fence can split into different shapes.'],
+      ['Partly', 'Fields are right but the biggest is not the square, or the sentence only says “it depends”.'],
+      ['Not yet', 'Fields do not use the whole fence.'],
+    ],
+    misconceptions: ['The same perimeter means the same area.', 'A long thin field is the biggest.'],
+    classCheck: ['Two fields each have 20 m of fence. One is 9 m by 1 m. Which has more area, and by how much, if the other is 5 m by 5 m?'],
   },
   pendulum: {
-    prep: 'None.',
-    answers: 'A 25 cm pendulum takes about 10 s for 10 swings, 36 cm about 12 s, 49 cm about 14 s. 4× the length gives about 2× the time. Time at 1.5× length is about 1.22× the first time. A second stone changes almost nothing.',
+    prep: 'None. Online only.',
+    answers: 'Each student has a different “planet”, so times differ. In every case 100 cm takes about 2 times as long as 25 cm. The time at the new length is about √(length ÷ 25) times the 25 cm time. {{k}}× the time needs 25 × k² cm. Mass does not change the time.',
     rubric: [
-      ['Got it', 'Times are steady, 4× length gives about 2× time, the prediction and the length for the goal time follow from their own data, and mass does not matter.'],
-      ['Partly', 'Longer means slower, but the time is expected to grow as much as the length.'],
-      ['Not yet', 'Times look like half-swings or random, or the length is said to make it faster.'],
+      ['Got it', 'The two times are read correctly, the ratio is about 2, the predictions follow from it, mass is ruled out, and the sentence says longer is slower but not in step with the length.'],
+      ['Partly', 'Numbers are right but the sentence is only “longer thread, longer time”.'],
+      ['Not yet', 'Times are not from the lab, or the ratio is taken as 4.'],
     ],
-    misconceptions: ['4× the length gives 4× the time.', 'A heavier stone swings faster.', 'One side to the other is a whole swing.'],
-    classCheck: ['A pendulum takes 15 s for 10 swings. How long is one swing?', 'Two pendulums, same length, one stone heavier. Which swings faster?'],
+    misconceptions: ['Four times the length gives four times the time.', 'A heavier bob swings faster.'],
+    classCheck: ['A pendulum takes 6 s for 10 swings at 25 cm. About how long at 100 cm?'],
   },
-  salt: {
-    prep: 'None.',
-    answers: 'Half a glass dissolves about 5–8 level teaspoons; a full glass about twice as many. Claim 1 can’t be tested here. Claims 2 and 3 disagree with what you see (it stops dissolving; the water tastes salty). Claim 4 can’t be tested here because the temperature did not change (salt barely changes with temperature; sugar does).',
+  dissolve: {
+    prep: 'None. Online only.',
+    answers: 'Hot water dissolves more spoons than cold. A full glass takes twice as many as a half glass. Stirring changes how fast it dissolves, not how much. Each student’s salt is different, so numbers differ.',
     rubric: [
-      ['Got it', 'Full glass takes about twice the spoons; claims sorted correctly; the sentence says the salt is still there as solid because the water is full.'],
-      ['Partly', 'Counts make sense, but claims are mixed up or the sentence says only that it “did not dissolve”.'],
-      ['Not yet', 'Says the salt vanished, or any amount dissolves.'],
+      ['Got it', 'The two readings are correct, the extra spoons match, the full-glass and glasses answers follow, stirring is “the same”, and the sentence says the water is full.'],
+      ['Partly', 'Numbers are right but the sentence is “it just does not dissolve”.'],
+      ['Not yet', 'Readings are not from the lab, or stirring is said to add salt.'],
     ],
-    misconceptions: ['Dissolved means gone.', 'Stirring longer dissolves any amount.', 'One experiment can test every claim.'],
-    classCheck: ['Which is saltier: 2 spoons in 100 mL or 4 spoons in 50 mL?'],
+    misconceptions: ['Stirring lets more salt dissolve.', 'Salt that has gone is destroyed.'],
+    classCheck: ['A glass takes 6 spoons at 20 °C and 9 at 60 °C. How many spoons for two glasses at 60 °C?'],
   },
-  paper: {
-    prep: 'None. A notebook with 120+ pages works best.',
-    answers: 'Notebook paper is about 0.07–0.12 mm per sheet. A stack of N pages has N ÷ 2 sheets. 80 pages ≈ 40 sheets ≈ 3–5 mm. The pile answer is thickness × sheets. Measuring 100 sheets is best because the 0.5 mm ruler error is shared among more sheets.',
+  mixer: {
+    prep: 'None. Online only.',
+    answers: 'Same taste means the same sugar for each cup. Multiply the cups by that number. A drink with a different spoons-to-cups ratio is sweeter or less sweet. Spoons ÷ (spoons per cup) gives the cups.',
     rubric: [
-      ['Got it', 'Divides by sheets (pages ÷ 2), writes thousandths correctly, scales the pile, and says a big stack shrinks the ruler error.'],
-      ['Partly', 'Correct arithmetic but divides by pages, or no reason for the stack.'],
-      ['Not yet', 'Decimal place errors (0.85 for 0.085) or no link to the stack.'],
+      ['Got it', 'Both sugar amounts follow the ratio, the new drink is judged correctly, the cups answer is right, and the sentence uses sugar per cup.'],
+      ['Partly', 'Answers are right but the method is “I tried until it matched”.'],
+      ['Not yet', 'Sugar is added by the same number of spoons, not the same factor.'],
     ],
-    misconceptions: ['Pages and sheets are the same.', '0.85 is smaller than 0.085.', 'Measuring one sheet carefully is just as good.'],
-    classCheck: ['50 sheets make a stack 4.5 mm tall. How thick is one sheet?'],
-  },
-  sweet: {
-    prep: 'None. Remind students to ask before using sugar.',
-    answers: 'B has twice the spoons of A. A and B taste the same; C (one more spoon for double the water) tastes less sweet. Cups from J spoons = J ÷ spoons in A. C needs (A − 1) more spoons: 2A − (A + 1).',
-    rubric: [
-      ['Got it', 'B = 2 × A, C picked as least sweet, correct cups and fix, and the sentence says the sugar must double when the water doubles.'],
-      ['Partly', 'B is correct but the fix or the reason is shaky.'],
-      ['Not yet', 'Adds instead of multiplies (B = A + 1).'],
-    ],
-    misconceptions: ['Adding the same amount keeps the ratio.', 'Ratio answers must be whole numbers.'],
-    classCheck: ['Kesang made 6 glasses with 10 spoons. How many spoons for 24 glasses?'],
+    misconceptions: ['Adding the same number of spoons keeps the taste.', 'Doubling water needs the sugar to stay the same.'],
+    classCheck: ['A drink uses 3 spoons for 2 cups. How many spoons for 6 cups?'],
   },
 };
 

@@ -1,8 +1,9 @@
 // Stateless verifier. No student data is stored: results are signed codes, and identical sheets hit a short-lived cache.
+import { runLab } from './lab.js';
 import { TASKS, TASK_CODE, CODE_TASK, LETTER, FROM_LETTER, gradedQuestions, textQuestions, normalize, missingQuestions,
-         scoreRules, combine, looksInjected, buildMessages, parseModel, validSet, caseFor, FEEDBACK } from './grade.js';
+         scoreRules, combine, looksInjected, buildMessages, parseModel, caseFor, FEEDBACK } from './grade.js';
 
-const PROMPT_VERSION = 'v4';
+const PROMPT_VERSION = 'v5';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-allow-headers': 'content-type' };
 const json = (b, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json', ...CORS } });
 const B32 = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -38,6 +39,13 @@ async function readCode(env, code) {
   };
 }
 
+// The set number is assigned by the checker from the browser id, so someone else cannot run your lab.
+const cidOk = c => /^[a-z0-9]{8,24}$/.test(String(c || ''));
+async function setFor(env, cid) {
+  const h = await hmac(env.SIGNING_KEY, 'set:' + cid);
+  return 10 + ((h[0] * 16777216 + h[1] * 65536 + h[2] * 256 + h[3]) % 90);
+}
+
 async function bump(env, key, cap) {
   if (!env.LIMITS) return true;
   const n = Number(await env.LIMITS.get(key)) || 0;
@@ -60,8 +68,9 @@ async function callModel(env, messages) {
 async function verify(env, body, ip) {
   const task = TASKS[body.task];
   if (!task) return json({ error: 'Unknown task.' }, 400);
-  const set = Number(body.set);
-  if (!validSet(set)) return json({ error: 'Missing set number.' }, 400);
+  if (!cidOk(body.cid)) return json({ error: 'Please reload the page.' }, 400);
+  const set = await setFor(env, body.cid);
+  if (Number(body.set) !== set) return json({ error: 'Please reload the page.' }, 400);
   const c = caseFor(set);
   const { ans, bad } = normalize(task, body.answers);
   const miss = missingQuestions(task, ans);
@@ -78,7 +87,7 @@ async function verify(env, body, ip) {
     const day = new Date().toISOString().slice(0, 10);
     // Retrying one task with many different answers would map the answer key. Cap per browser (and per network, which is larger
     // because a school shares one address). Changing the set number does not reset it.
-    const cid = /^[a-z0-9]{8,24}$/.test(String(body.cid || '')) ? body.cid : ip;
+    const cid = body.cid;
     if (!(await bump(env, `try:${cid}:${task.id}:${day}`, Number(env.TRY_CAP) || 8)) || !(await bump(env, `tip:${ip}:${task.id}:${day}`, Number(env.NET_TRY_CAP) || 200)))
       return json({ error: 'That is a lot of tries for this task today. Ask your teacher, or try again tomorrow.' }, 429);
     if (!(await bump(env, `ip:${ip}:${day}`, Number(env.IP_DAILY_CAP) || 300)) || !(await bump(env, `all:${day}`, Number(env.GLOBAL_DAILY_CAP) || 2000)))
@@ -117,6 +126,21 @@ export default {
     try {
       if (url.pathname === '/api/health') return json({ ok: true, model: env.MODEL || 'gpt-4.1-mini', configured: !!(env.AIPIPE_TOKEN && env.SIGNING_KEY) });
       if (!env.SIGNING_KEY) return json({ error: 'Checker is not configured yet.' }, 503);
+      if (url.pathname === '/api/set') {
+        const cid = url.searchParams.get('cid');
+        return cidOk(cid) ? json({ ok: true, set: await setFor(env, cid) }) : json({ error: 'Bad browser id.' }, 400);
+      }
+      if (url.pathname === '/api/lab' && req.method === 'POST') {
+        const text = await req.text();
+        if (text.length > 600) return json({ error: 'Bad request.' }, 413);
+        let b; try { b = JSON.parse(text); } catch { return json({ error: 'Bad request.' }, 400); }
+        if (!cidOk(b.cid) || !TASKS[b.task]) return json({ error: 'Bad request.' }, 400);
+        const day = new Date().toISOString().slice(0, 10);
+        if (!(await bump(env, `lab:${b.cid}:${day}`, Number(env.LAB_CAP) || 200)) || !(await bump(env, `labip:${ip}:${day}`, 3000)))
+          return json({ error: 'That is a lot of runs for today. Try again tomorrow.' }, 429);
+        const r = runLab(b.task, await setFor(env, b.cid), b.inputs);
+        return r ? json({ ok: true, ...r }) : json({ error: 'This task has no lab.' }, 400);
+      }
       if (url.pathname === '/api/verify' && req.method === 'POST') {
         const text = await req.text();
         if (text.length > 12000) return json({ error: 'Answers are too long.' }, 413);

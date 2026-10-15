@@ -4,7 +4,7 @@ import { ASSIGNMENTS, CASE, fill } from './assignments.mjs';
 import { PLAUSIBLE, RULES, CRITERIA } from './keys.js';
 
 export const TASKS = Object.fromEntries(ASSIGNMENTS.map(a => [a.id, a]));
-export const TASK_CODE = { handspan: 'HSP', pendulum: 'PEN', salt: 'SLT', paper: 'PAP', sweet: 'SWT' };
+export const TASK_CODE = { river: 'RIV', fence: 'FEN', pendulum: 'PEN', dissolve: 'DIS', mixer: 'MIX' };
 export const CODE_TASK = Object.fromEntries(Object.entries(TASK_CODE).map(([k, v]) => [v, k]));
 export const LEVELS = ['got_it', 'partly', 'not_yet'];
 export const LETTER = { got_it: 'G', partly: 'P', not_yet: 'N' };
@@ -15,7 +15,7 @@ const WEIGHT = { A: 1, D: 2, F: 2, C: 0.5 };
 export const gradedQuestions = task => task.questions.filter(q => q.kind !== 'P');
 export const textQuestions = task => task.questions.filter(q => q.kind === 'T');
 export const validSet = s => Number.isInteger(s) && s >= 10 && s <= 99;
-export const caseFor = set => CASE(set);
+export const caseFor = set => ({ ...CASE(set), set });
 
 export function normalize(task, raw) {
   const ans = {}, bad = [];
@@ -104,7 +104,7 @@ Return exactly: {"results":[{"id":"...","verdict":"ok|partial|no","reason_code":
 
 export function buildMessages(task, ans, c, toModel) {
   const numbers = {};
-  for (const q of task.questions) if (q.type !== 'text') numbers[q.short || q.id] = ans[q.id];
+  for (const q of task.questions) if (q.type !== 'text') numbers[fill(q.short || q.id, c)] = ans[q.id];
   const payload = {
     activity: fill(task.title, c),
     child_numbers: numbers,
